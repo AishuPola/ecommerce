@@ -15,6 +15,5 @@ export class CreateUserDto {
   email: string;
 
   @MinLength(6)
-  @MaxLength(20)
   password: string;
 }

@@ -11,4 +11,7 @@ export class UsersService {
     const newUser = new this.userModel(CreateUserDto);
     return newUser.save();
   }
+  getUsers(): Promise<User[]> {
+    return this.userModel.find().exec();
+  }
 }
