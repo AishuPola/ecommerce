@@ -14,4 +14,11 @@ export class UsersService {
   getUsers(): Promise<User[]> {
     return this.userModel.find().exec();
   }
+  findByEmailOrUsername(email: String, username: string): Promise<User> {
+    return this.userModel
+      .findOne({
+        $or: [{ email: email }, { username: username }],
+      })
+      .exec();
+  }
 }
