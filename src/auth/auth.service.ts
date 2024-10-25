@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -54,10 +55,14 @@ export class AuthService {
         username,
         email,
         password: hashedPassword,
+        role,
       });
       console.log(newUser);
       return newUser;
-    } catch {}
+    } catch (error) {
+      console.log('Error creating user', error);
+      throw new InternalServerErrorException('failed to create user');
+    }
   }
   async login(LoginDto: LoginDto): Promise<{ access_token: string }> {
     const { identifier, password } = LoginDto;
