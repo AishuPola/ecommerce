@@ -32,7 +32,7 @@ export class AuthService {
     if (user && (await bcrypt.compare(pass, user.password))) {
       const { password, ...result } = user; // remove password before returning user
       console.log('result', result);
-      return result;
+      return result; // the user is present inside the .doc inside the result
     }
 
     return null; // user or password is invalid
