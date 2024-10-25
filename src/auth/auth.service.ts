@@ -18,21 +18,24 @@ export class AuthService {
   ) {}
 
   async validateUser(identifier: string, pass: string): Promise<any> {
-    // Try to find by email first
-    let user = await this.userService.findByEmail(identifier);
+    // let user = await this.userService.findByEmail(identifier);
 
-    // If no user found by email, search by username
-    if (!user) {
-      user = await this.userService.findByUsername(identifier);
-    }
-
+    // if (!user) {
+    //   user = await this.userService.findByUsername(identifier);
+    // }
+    const user = await this.userService.findByEmailOrUsername(
+      identifier,
+      identifier,
+    );
+    console.log('✅', user);
     // If user is found, verify the password
     if (user && (await bcrypt.compare(pass, user.password))) {
       const { password, ...result } = user; // remove password before returning user
+      console.log('result', result);
       return result;
     }
 
-    return null; // return null if user is not found or password is invalid
+    return null; // user or password is invalid
   }
 
   async signup(SignUpDto: SignUpDto): Promise<User> {
@@ -62,9 +65,10 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('invalid login credentials');
     }
+    console.log(user._doc.username, user._doc._id);
     const payload = {
-      username: user.username,
-      sub: user._id,
+      username: user._doc.username,
+      sub: user._doc._id,
     };
     console.log(payload);
 
