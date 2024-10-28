@@ -16,6 +16,10 @@ export class ProductsService {
     console.log(product);
     return product;
   }
+  getProductById(id: string): Promise<Product> {
+    const getProductById = this.ProductModel.findById(id).exec();
+    return getProductById;
+  }
   getProducts(): Promise<Product[]> {
     return this.ProductModel.find().exec();
   }

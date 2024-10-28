@@ -6,11 +6,14 @@ import {
   Param,
   Post,
   Put,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-pro.dto';
 import { UpdateProductDto } from './dto/update-pro.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+// @UseGuards(AuthGuard('jwt'))
 @Controller('products')
 export class ProductsController {
   constructor(private productsservice: ProductsService) {}
@@ -21,6 +24,10 @@ export class ProductsController {
   @Get()
   getProducts() {
     return this.productsservice.getProducts();
+  }
+  @Get(':id')
+  getProductById(@Param('id') id: string) {
+    return this.productsservice.getProductById(id);
   }
   @Put(':id')
   updateProduct(
