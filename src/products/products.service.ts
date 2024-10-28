@@ -4,6 +4,7 @@ import { Product } from './schema/product.schema';
 import { Model } from 'mongoose';
 import { CreateProductDto } from './dto/create-pro.dto';
 import { UpdateProductDto } from './dto/update-pro.dto';
+import { User } from 'src/users/schemas/user.schema';
 
 @Injectable()
 export class ProductsService {
@@ -11,8 +12,11 @@ export class ProductsService {
     @InjectModel(Product.name) private ProductModel: Model<Product>,
   ) {}
 
-  createProduct(CreateProductDto: CreateProductDto): Promise<Product> {
-    const product = new this.ProductModel(CreateProductDto).save();
+  createProduct(
+    CreateProductDto: CreateProductDto,
+    user: User,
+  ): Promise<Product> {
+    const product = new this.ProductModel({ ...CreateProductDto, user }).save();
     console.log(product);
     return product;
   }
