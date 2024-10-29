@@ -1,31 +1,38 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Cart } from './schema/cart.schema';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { addItemDto } from './dto/additem.dto';
+import { Model, Types } from 'mongoose';
+import { Cart } from './schema/cart.schema';
 
 @Injectable()
 export class CartService {
   constructor(@InjectModel(Cart.name) private cartModel: Model<Cart>) {}
-  addProductToCart(addItemDto: addItemDto) {
-    const { userId, productId, quantity } = addItemDto;
-    const cart = this.cartModel.findOneAndUpdate(
-      { user: userId },
-      {
-        $setOnInsert: { user: userId },
-        $inc: { [`items.$[elem].quantity`]: quantity },
-      },
-      {
-        upsert: true,
-        new: true,
-        arrayFilters: [{ 'elem.product': productId }],
-      },
+
+  async addItemToCart(userId: string, productId: string, quantity: number) {
+    let cart = await this.cartModel.findOne({ user: userId });
+
+    // If the cart does not exist, create it with an empty items array
+    if (!cart) {
+      cart = new this.cartModel({
+        user: userId,
+        items: [], // Initialize items as an empty array
+      });
+    }
+
+    // Check if the item already exists in the cart
+    const existingItem = cart.items.find(
+      (item) => item.product.toString() === productId,
     );
 
-    if (!cart) {
-      throw new NotFoundException('CART NOT FOUND');
+    if (existingItem) {
+      // If item exists, update the quantity
+      existingItem.quantity += quantity;
+    } else {
+      // If item does not exist, push a new item into the items array
+      cart.items.push({ product: new Types.ObjectId(productId), quantity });
     }
-    console.log(cart);
+
+    // Save the cart with the updated items array
+    await cart.save();
     return cart;
   }
 }
