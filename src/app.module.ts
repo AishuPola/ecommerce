@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
+import { CartModule } from './cart/cart.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { ProductsModule } from './products/products.module';
     MongooseModule.forRoot('mongodb://localhost:27017/nest_ecommerce'),
     AuthModule,
     ProductsModule,
+    CartModule,
   ],
   controllers: [AppController],
   providers: [AppService],
