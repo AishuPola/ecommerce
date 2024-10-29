@@ -21,9 +21,11 @@ export class CartService {
         arrayFilters: [{ 'elem.product': productId }],
       },
     );
+
     if (!cart) {
       throw new NotFoundException('CART NOT FOUND');
     }
+    console.log(cart);
     return cart;
   }
 }
