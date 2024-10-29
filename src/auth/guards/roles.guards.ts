@@ -16,6 +16,7 @@ export class RolesGuard implements CanActivate {
       ROLES_KEY,
       [context.getHandler(), context.getClass()],
     );
+    console.log('Required Roles:', requiredRoles);
 
     if (!requiredRoles) {
       return true;
@@ -28,7 +29,8 @@ export class RolesGuard implements CanActivate {
     }
 
     const user = this.jwtService.verify(token);
-
-    return requiredRoles.includes(user.role);
+    console.log('User Role:', user.role);
+    // Check if user has at least one of the required roles
+    return requiredRoles.some((role) => role === user.role);
   }
 }

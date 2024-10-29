@@ -15,10 +15,14 @@ import { UpdateProductDto } from './dto/update-pro.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Product } from './schema/product.schema';
 import { User } from 'src/users/schemas/user.schema';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { RolesGuard } from 'src/auth/guards/roles.guards';
 
 @Controller('products')
 export class ProductsController {
   constructor(private productsservice: ProductsService) {}
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
   @Post()
   createProduct(
     @Body() CreateProductDto: CreateProductDto,
@@ -27,15 +31,20 @@ export class ProductsController {
     const user: User = req.user;
     return this.productsservice.createProduct(CreateProductDto, user);
   }
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'USER')
   @Get()
   getProducts() {
     return this.productsservice.getProducts();
   }
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'USER')
   @Get(':id')
   getProductById(@Param('id') id: string) {
     return this.productsservice.getProductById(id);
   }
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
   @Put(':id')
   updateProduct(
     @Param('id') id: string,
@@ -43,6 +52,8 @@ export class ProductsController {
   ) {
     return this.productsservice.updateProduct(id, UpdateProductDto);
   }
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN')
   @Delete(':id')
   deleteProduct(@Param('id') id: string) {
     return this.productsservice.deleteProduct(id);
