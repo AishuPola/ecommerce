@@ -1,10 +1,10 @@
-import { IsString } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 
 export class addItemDto {
   @IsString()
   userId: string;
   @IsString()
   productId: string;
-  @IsString()
+  @IsNumber()
   quantity: number;
 }
