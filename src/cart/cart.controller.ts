@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  Delete,
+  Get,
   Param,
   Post,
   Request,
@@ -28,5 +30,17 @@ export class CartController {
       productId,
       quantity,
     ); // Use user ID from the request
+  }
+  @UseGuards(AuthGuard('jwt'))
+  @Get('items')
+  async getCartItems(@Request() req) {
+    const userId = req.user._doc._id;
+    return this.cartService.getItemsInCart(userId);
+  }
+  @UseGuards(AuthGuard('jwt'))
+  @Delete('clear')
+  async clearCartItems(@Request() req) {
+    const userId = req.user._doc._id;
+    return this.cartService.clearCartItems(userId);
   }
 }

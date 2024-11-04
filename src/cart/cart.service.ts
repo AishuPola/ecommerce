@@ -35,4 +35,24 @@ export class CartService {
     await cart.save();
     return cart;
   }
+
+  async getItemsInCart(userId: string) {
+    const cart = await this.cartModel
+      .findOne({ user: userId })
+      .populate('items.product');
+    if (!cart) {
+      return { message: 'No items in cart', items: [] };
+    }
+    return cart.items;
+  }
+  async clearCartItems(userId: string) {
+    const cart = await this.cartModel.findOne({ user: userId });
+
+    if (cart) {
+      cart.items = [];
+      await cart.save();
+      return { message: 'Cart cleared successfully' };
+    }
+    return { message: 'Cart is already empty' };
+  }
 }
