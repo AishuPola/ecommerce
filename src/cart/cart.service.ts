@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Cart } from './schema/cart.schema';
@@ -14,6 +18,18 @@ export class CartService {
   ) {}
 
   async addItemToCart(userId: string, productId: string, quantity: number) {
+    // Fetch the product details to check stock
+    const product = await this.productService.getProductById(productId);
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    // Check if requested quantity exceeds available stock
+    if (quantity > product.stock) {
+      throw new BadRequestException(
+        `Only ${product.stock} items available in stock.`,
+      );
+    }
     let cart = await this.cartModel.findOne({ user: userId });
 
     // If the cart does not exist, create it with an empty items array
