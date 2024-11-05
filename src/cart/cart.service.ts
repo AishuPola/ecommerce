@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Cart } from './schema/cart.schema';
 import { ProductsService } from 'src/products/products.service';
+import { Product } from 'src/products/schema/product.schema';
 
 @Injectable()
 export class CartService {
@@ -33,7 +34,15 @@ export class CartService {
       existingItem.quantity += quantity;
     } else {
       // If item does not exist, push a new item into the items array
-      cart.items.push({ product: new Types.ObjectId(productId), quantity });
+      const product = await this.productService.getProductById(productId);
+      if (!product) {
+        throw new NotFoundException('Product not found');
+      }
+      cart.items.push({
+        product: new Types.ObjectId(productId),
+        quantity,
+        price: product.price,
+      });
     }
 
     // Save the cart with the updated items array
@@ -50,16 +59,17 @@ export class CartService {
     }
     return cart.items;
   }
-  // async clearCartItems(userId: string) {
-  //   const cart = await this.cartModel.findOne({ user: userId });
+  async clearCartItems(userId: string) {
+    const cart = await this.cartModel.findOne({ user: userId });
 
-  //   if (cart) {
-  //     cart.items = [];
-  //     await cart.save();
-  //     return { message: 'Cart cleared successfully' };
-  //   }
-  //   return { message: 'Cart is already empty' };
-  // }
+    if (cart) {
+      // cart.items = [];
+      // await cart.save();
+      await this.cartModel.deleteOne({ user: userId });
+      return { message: 'Cart cleared successfully' };
+    }
+    return { message: 'Cart does not exist or is already empty' };
+  }
 
   // In src/cart/cart.service.ts
   async getCartByUserId(userId: string): Promise<Cart> {

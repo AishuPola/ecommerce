@@ -10,4 +10,10 @@ export class OrdersController {
     private orderservice: OrdersService,
     private cartService: CartService,
   ) {}
+  @UseGuards(AuthGuard('jwt'))
+  @Post('items')
+  async placeOrder(@Request() req) {
+    const userId = req.user._doc._id;
+    return this.orderservice.placeOrder(userId);
+  }
 }
