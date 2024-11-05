@@ -37,10 +37,10 @@ export class CartController {
     const userId = req.user._doc._id;
     return this.cartService.getItemsInCart(userId);
   }
-  @UseGuards(AuthGuard('jwt'))
-  @Delete('clear')
-  async clearCartItems(@Request() req) {
-    const userId = req.user._doc._id;
-    return this.cartService.clearCartItems(userId);
-  }
+  // @UseGuards(AuthGuard('jwt'))
+  // @Delete('clear')
+  // async clearCartItems(@Request() req) {
+  //   const userId = req.user._doc._id;
+  //   return this.cartService.clearCartItems(userId);
+  // }
 }

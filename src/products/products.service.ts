@@ -52,4 +52,8 @@ export class ProductsService {
     // console.log(deleteProduct);
     return deleteProduct;
   }
+  async findProductsByIds(productIds: string[]): Promise<Product[]> {
+    if (!productIds.length) return []; // Handle empty array
+    return this.ProductModel.find({ _id: { $in: productIds } }).exec();
+  }
 }

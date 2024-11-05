@@ -4,6 +4,7 @@ import { CartService } from './cart.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Cart, CartSchema } from './schema/cart.schema';
 import { ProductsModule } from 'src/products/products.module';
+import { ProductsService } from 'src/products/products.service';
 
 @Module({
   imports: [
@@ -12,5 +13,6 @@ import { ProductsModule } from 'src/products/products.module';
   ],
   controllers: [CartController],
   providers: [CartService],
+  exports: [CartService],
 })
 export class CartModule {}
