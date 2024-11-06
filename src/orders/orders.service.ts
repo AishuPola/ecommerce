@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Order } from './schema/order.schema';
 import { Model } from 'mongoose';
 import { CartService } from 'src/cart/cart.service';
-import { CreateOrderDto } from './dto/create-order.dto';
+
 import { Cart } from 'src/cart/schema/cart.schema';
+import { ProductsService } from 'src/products/products.service';
+import { Product } from 'src/products/schema/product.schema';
 
 @Injectable()
 export class OrdersService {
@@ -12,6 +18,7 @@ export class OrdersService {
     @InjectModel(Cart.name) private cartModel: Model<Cart>,
     @InjectModel(Order.name) private orderModel: Model<Order>,
     private cartservice: CartService,
+    private productsService: ProductsService,
   ) {}
   async placeOrder(userId: string) {
     // Find the user's cart and populate the product details in items
@@ -23,6 +30,16 @@ export class OrdersService {
       throw new NotFoundException('Cart is empty or does not exist');
     }
 
+    // Validate stock for each item in the cart
+    for (const item of cart.items) {
+      const product = item.product as Product;
+      if (product.stock < item.quantity) {
+        throw new BadRequestException(
+          `Product ${product.name} has only ${product.stock} items in stock.`,
+        );
+      }
+    }
+
     // Calculate the total amount using the populated product data
     const totalAmount = cart.items.reduce((sum, item) => {
       const productPrice = item.price; // Access price from populated product
@@ -30,11 +47,28 @@ export class OrdersService {
     }, 0);
 
     // Prepare order items
-    const orderItems = cart.items.map((item) => ({
-      productId: item.product._id, // Access populated product ID
-      quantity: item.quantity,
-    }));
+    // const orderItems = cart.items.map((item) => ({
+    //   productId: item.product._id, // Access populated product ID
+    //   quantity: item.quantity,
+    // }));
 
+    // Prepare order items and reduce stock
+    const orderItems = [];
+    for (const item of cart.items) {
+      const product = item.product as Product;
+
+      // Deduct the quantity from the product's stock
+      await this.productsService.updateProductStock(
+        product._id.toString(),
+        -item.quantity,
+      );
+
+      // Prepare order item details
+      orderItems.push({
+        productId: product._id,
+        quantity: item.quantity,
+      });
+    }
     // Create and save the order
     const newOrder = new this.orderModel({
       userId,

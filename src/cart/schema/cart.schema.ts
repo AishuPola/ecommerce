@@ -5,7 +5,7 @@ import { Product } from 'src/products/schema/product.schema';
 @Schema()
 export class CartItem {
   @Prop({ type: Types.ObjectId, ref: Product.name, required: true })
-  product: Types.ObjectId;
+  product: Types.ObjectId | Product;
 
   @Prop({ required: true, default: 1 })
   quantity: number;
