@@ -4,7 +4,7 @@ import { Document } from 'mongoose';
 // export type ProductDocument = Product & Document;
 
 // Define the Product interface that extends Document
-export interface Product extends Document {
+export interface Product {
   name: string;
   description: string;
   price: number;

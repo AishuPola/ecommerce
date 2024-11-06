@@ -23,8 +23,8 @@ export class User {
   @Prop({ type: String, enum: UserRole, default: UserRole.USER })
   role: string; // Roles: USER, ADMIN
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  user: User;
+  // @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  // user?: User;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

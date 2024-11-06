@@ -4,7 +4,7 @@ import { Product } from 'src/products/schema/product.schema';
 
 @Schema()
 export class CartItem {
-  @Prop({ type: Types.ObjectId, ref: 'Product', required: true })
+  @Prop({ type: Types.ObjectId, ref: Product.name, required: true })
   product: Types.ObjectId;
 
   @Prop({ required: true, default: 1 })
