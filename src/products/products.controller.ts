@@ -58,4 +58,17 @@ export class ProductsController {
   deleteProduct(@Param('id') id: string) {
     return this.productsservice.deleteProduct(id);
   }
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'USER')
+  @Get(':id/discounted-price')
+  async getDiscountedPrice(
+    @Param('id') id: string,
+    quantity: number,
+  ): Promise<{ discountedPrice: number }> {
+    const discountedPrice = await this.productsservice.getDiscountedPrice(
+      id,
+      quantity,
+    );
+    return { discountedPrice };
+  }
 }

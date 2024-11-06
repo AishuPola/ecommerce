@@ -13,4 +13,6 @@ export class CreateProductDto {
   stock: number;
   @IsNotEmpty()
   category: string;
+  @IsNumber()
+  rating?: number;
 }

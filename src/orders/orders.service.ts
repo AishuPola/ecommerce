@@ -41,10 +41,20 @@ export class OrdersService {
     }
 
     // Calculate the total amount using the populated product data
-    const totalAmount = cart.items.reduce((sum, item) => {
-      const productPrice = item.price; // Access price from populated product
-      return sum + productPrice * item.quantity;
-    }, 0);
+    // const totalAmount = cart.items.reduce((sum, item) => {
+    //   const productPrice = item.price; // Access price from populated product
+    //   return sum + productPrice * item.quantity;
+    // }, 0);
+
+    let totalAmount = 0;
+    for (const item of cart.items) {
+      const product = item.product as Product;
+      const discountedPrice = await this.productsService.getDiscountedPrice(
+        product._id.toString(),
+        item.quantity,
+      );
+      totalAmount += discountedPrice;
+    }
 
     // Prepare order items
     // const orderItems = cart.items.map((item) => ({
@@ -81,6 +91,10 @@ export class OrdersService {
 
     // await this.cartModel.updateOne({ user: userId }, { $set: { items: [] } });
     await this.cartservice.clearCartItems(userId);
-    return { message: 'Order placed successfully', orderId: newOrder._id };
+    return {
+      message: 'Order placed successfully',
+      orderId: newOrder._id,
+      totalAmount,
+    };
   }
 }

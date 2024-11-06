@@ -84,4 +84,22 @@ export class ProductsService {
 
     return product;
   }
+
+  async getDiscountedPrice(id: string, quantity: number): Promise<number> {
+    const product = await this.ProductModel.findById(id).exec();
+
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    let discountedPrice = product.price;
+
+    // Check if there's an active offer
+    if (product.offer?.isActive && product.offer.discountPercentage > 0) {
+      discountedPrice =
+        product.price * (1 - product.offer.discountPercentage / 100);
+    }
+
+    return discountedPrice * quantity;
+  }
 }

@@ -1,15 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Types } from 'mongoose';
 
-// export type ProductDocument = Product & Document;
-
-// Define the Product interface that extends Document
 export interface Product {
   name: string;
   description: string;
   price: number;
   stock: number;
   category: string;
+  rating: number;
+  offer?: {
+    isActive: boolean;
+    discountPercentage: number;
+  };
 }
 @Schema()
 export class Product {
@@ -28,6 +30,17 @@ export class Product {
   @Prop({ required: true })
   category: string;
 
+  @Prop({ type: Number, default: 0, min: 0, max: 5 }) // Rating between 0 and 5
+  rating: number;
+
+  @Prop({
+    type: Object,
+    default: { isActive: false, discountPercentage: 0 },
+  })
+  offer?: {
+    isActive: boolean;
+    discountPercentage: number;
+  };
   _id: Types.ObjectId;
 }
 
