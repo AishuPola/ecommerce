@@ -31,6 +31,12 @@ export class ProductsService {
   getProducts(): Promise<Product[]> {
     return this.ProductModel.find().exec();
   }
+  async getProductsByCategory(category: string): Promise<Product[]> {
+    return this.ProductModel.find({
+      category: { $regex: new RegExp(`^${category}$`, 'i') },
+    }).exec();
+  }
+
   async updateProduct(
     id: string,
     UpdateProductDto: UpdateProductDto,

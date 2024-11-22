@@ -12,6 +12,7 @@ export interface Product {
     isActive: boolean;
     discountPercentage: number;
   };
+  imageUrl: string;
 }
 @Schema()
 export class Product {
@@ -41,6 +42,8 @@ export class Product {
     isActive: boolean;
     discountPercentage: number;
   };
+  @Prop({ type: String })
+  imageUrl: string;
   _id: Types.ObjectId;
 }
 

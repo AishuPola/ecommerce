@@ -39,6 +39,15 @@ export class ProductsController {
   }
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles('ADMIN', 'USER')
+  @Get('category/:categoryName')
+  async getProductsByCategory(
+    @Param('categoryName') categoryName: string,
+  ): Promise<Product[]> {
+    return this.productsservice.getProductsByCategory(categoryName);
+  }
+
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
+  @Roles('ADMIN', 'USER')
   @Get(':id')
   getProductById(@Param('id') id: string) {
     return this.productsservice.getProductById(id);
