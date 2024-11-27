@@ -8,6 +8,8 @@ import { AuthModule } from './auth/auth.module';
 import { ProductsModule } from './products/products.module';
 import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
+import { OtpService } from './otp/otp.service';
+import { OtpModule } from './otp/otp.module';
 
 @Module({
   imports: [
@@ -28,8 +30,9 @@ import { OrdersModule } from './orders/orders.module';
     ProductsModule,
     CartModule,
     OrdersModule,
+    OtpModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, OtpService],
 })
 export class AppModule {}

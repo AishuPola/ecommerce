@@ -13,12 +13,14 @@ import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import * as crypto from 'crypto';
 import * as nodemailer from 'nodemailer';
+import { OtpService } from 'src/otp/otp.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UsersService,
     private jwtService: JwtService,
+    private readonly otpService: OtpService,
   ) {}
 
   async validateUser(identifier: string, pass: string): Promise<any> {
@@ -91,8 +93,8 @@ export class AuthService {
 
       await this.sendOtpToEmail(email, otp);
       console.log('OTP sent to email:', email);
-      // await this.sendOtpToPhone(phoneNumber, otp);
-      // console.log('otp sent to phone:', phoneNumber);
+      await this.otpService.sendOtpToPhone(phoneNumber, otp);
+      console.log('otp sent to phone:', phoneNumber);
       return newUser;
     } catch (error) {
       console.log('Error creating user', error);

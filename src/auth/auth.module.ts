@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './jwt.strategy';
 import { RolesGuard } from './guards/roles.guards';
+import { OtpModule } from 'src/otp/otp.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { RolesGuard } from './guards/roles.guards';
         signOptions: { expiresIn: '3600s' }, // JWT expiration time
       }),
     }),
+    OtpModule,
   ],
   providers: [AuthService, JwtStrategy, RolesGuard],
   controllers: [AuthController],

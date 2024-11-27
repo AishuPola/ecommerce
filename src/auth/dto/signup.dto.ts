@@ -24,8 +24,8 @@ export class SignUpDto {
   username: string;
 
   @IsNotEmpty()
-  // @IsPhoneNumber('IN') // Adjust the country code based on your requirements
-  phoneNumber: number;
+  @IsPhoneNumber('IN') // Adjust the country code based on your requirements
+  phoneNumber: string;
 
   @IsNotEmpty()
   @IsString()
