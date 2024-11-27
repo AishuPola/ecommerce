@@ -12,13 +12,34 @@ export class User {
   // _id: string;
 
   @Prop({ required: true })
+  firstname: string;
+
+  @Prop({ required: true })
+  lastname: string;
+
+  @Prop({ required: true, unique: true })
   username: string;
 
   @Prop({ required: true, unique: true })
   email: string;
 
   @Prop({ required: true })
+  phoneNumber: number;
+
+  @Prop({ required: true })
+  country: string;
+
+  @Prop({ required: true })
   password: string;
+
+  @Prop()
+  otp: string;
+
+  @Prop()
+  otpExpiration: string;
+
+  @Prop({ default: false })
+  isVerified: boolean;
 
   @Prop({ type: String, enum: UserRole, default: UserRole.USER })
   role: string; // Roles: USER, ADMIN

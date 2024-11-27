@@ -14,4 +14,14 @@ export class AuthController {
   async login(@Body() LoginDto: LoginDto) {
     return this.authservice.login(LoginDto);
   }
+  @Post('verify-otp')
+  async verifyOtp(@Body() VerifyOtpDto: { email: string; otp: string }) {
+    const { email, otp } = VerifyOtpDto;
+    const isVerified = await this.authservice.verifyOtp(email, otp);
+    return {
+      message: isVerified
+        ? 'OTP verfied successfully. User is now verified.'
+        : 'OTP verification failed',
+    };
+  }
 }

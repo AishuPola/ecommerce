@@ -4,7 +4,7 @@ import { User, UserDocument } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-
+import { ObjectId } from 'mongoose';
 @Injectable()
 export class UsersService {
   constructor(@InjectModel('User') private userModel: Model<UserDocument>) {}
@@ -14,6 +14,9 @@ export class UsersService {
   }
   getUsers(): Promise<User[]> {
     return this.userModel.find().exec();
+  }
+  findByemail(email: string) {
+    return this.userModel.findOne({ email }).exec();
   }
   findByEmailOrUsername(email: String, username: string): Promise<User> {
     return this.userModel
@@ -37,5 +40,9 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
     return updateuser;
+  }
+
+  async update(id: string, updateData: Partial<User>): Promise<User> {
+    return this.userModel.findByIdAndUpdate(id, updateData, { new: true });
   }
 }

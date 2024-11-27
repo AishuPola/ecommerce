@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   InternalServerErrorException,
@@ -10,6 +11,8 @@ import { SignUpDto } from './dto/signup.dto';
 import { User } from 'src/users/schemas/user.schema';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
+import * as crypto from 'crypto';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class AuthService {
@@ -40,33 +43,121 @@ export class AuthService {
   }
 
   async signup(SignUpDto: SignUpDto): Promise<User> {
-    const { username, email, password, role } = SignUpDto;
+    const {
+      firstname,
+      lastname,
+      username,
+      email,
+      phoneNumber,
+      country,
+      password,
+      confirmPassword,
+
+      role,
+    } = SignUpDto;
+    if (password != confirmPassword) {
+      throw new BadRequestException(
+        'password and Confirm password must match each other',
+      );
+    }
     const existingUser = await this.userService.findByEmailOrUsername(
       email,
       username,
     );
     if (existingUser) {
-      throw new ConflictException('user already exists');
+      throw new ConflictException(
+        'user with this email or username already exists',
+      );
     }
     const hashedPassword = await bcrypt.hash(password, 10);
-
+    const otp = crypto.randomInt(100000, 999999).toString();
+    const otpExpiration = new Date(Date.now() + 10 * 60 * 1000);
     try {
       const newUser = await this.userService.create({
+        firstname,
+        lastname,
         username,
         email,
+        phoneNumber,
+        country,
         password: hashedPassword,
+        otp,
+        otpExpiration,
+        isVerified: false,
         role,
       });
+
       console.log(newUser);
+
+      await this.sendOtpToEmail(email, otp);
+      console.log('OTP sent to email:', email);
+      // await this.sendOtpToPhone(phoneNumber, otp);
+      // console.log('otp sent to phone:', phoneNumber);
       return newUser;
     } catch (error) {
       console.log('Error creating user', error);
       throw new InternalServerErrorException('failed to create user');
     }
   }
+
+  async sendOtpToEmail(email: string, otp: string) {
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.user_mail,
+        pass: process.env.user_pass,
+      },
+    });
+    const mailOptions = {
+      from: process.env.user_mail,
+      to: email,
+      subject: 'Your OTP for Signup Verification',
+      text: `Your OTP is ${otp}. This OTP is valid for 10 minutes.`,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`OTP sent to email: ${email}`);
+  }
+  // async sendOtpToPhone(phoneNumber: string, otp: string) {
+  //   const twilioClient = new Twilio('TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN');
+  //   await twilioClient.messages.create({
+  //     body: `Your OTP for signup verification is ${otp}. This OTP is valid for 10 minutes.`,
+  //     from: '+919000906504', // Replace with your Twilio phone number
+  //     to: phoneNumber,
+  //   });
+
+  //   console.log(`OTP sent to phone number: ${phoneNumber}`);
+  // }
+
+  async verifyOtp(email: string, otp: string): Promise<boolean> {
+    const user = await this.userService.findByemail(email);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    console.log('User OTP:', user.otp);
+    console.log('Entered OTP:', otp);
+    console.log('User OTP Expiration:', user.otpExpiration);
+    console.log('Current Time:', new Date());
+    const otpExpirationDate = new Date(user.otpExpiration).toISOString();
+    const currentTime = new Date().toISOString();
+
+    if (user.otp != otp) {
+      throw new UnauthorizedException('Invalid OTP');
+    }
+
+    if (otpExpirationDate <= currentTime) {
+      throw new UnauthorizedException('OTP has expired');
+    }
+
+    user.isVerified = true;
+    await this.userService.update(user._id.toString(), { isVerified: true });
+    return true;
+  }
+
   async login(LoginDto: LoginDto): Promise<{ access_token: string }> {
     const { identifier, password } = LoginDto;
     const user = await this.validateUser(identifier, password);
+
     if (!user) {
       throw new UnauthorizedException('invalid login credentials');
     }
@@ -76,6 +167,7 @@ export class AuthService {
       sub: user._doc._id,
       role: user._doc.role,
     };
+
     console.log(payload);
 
     return {
