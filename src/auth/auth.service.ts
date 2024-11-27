@@ -15,6 +15,7 @@ import * as crypto from 'crypto';
 import * as nodemailer from 'nodemailer';
 import { OtpService } from 'src/otp/otp.service';
 
+let temporaryUsers = new Map();
 @Injectable()
 export class AuthService {
   constructor(
@@ -44,7 +45,66 @@ export class AuthService {
     return null; // user or password is invalid
   }
 
-  async signup(SignUpDto: SignUpDto): Promise<User> {
+  // async signup(SignUpDto: SignUpDto): Promise<User> {
+  //   const {
+  //     firstname,
+  //     lastname,
+  //     username,
+  //     email,
+  //     phoneNumber,
+  //     country,
+  //     password,
+  //     confirmPassword,
+
+  //     role,
+  //   } = SignUpDto;
+  //   if (password != confirmPassword) {
+  //     throw new BadRequestException(
+  //       'password and Confirm password must match each other',
+  //     );
+  //   }
+  //   const existingUser = await this.userService.findByEmailOrUsername(
+  //     email,
+  //     username,
+  //   );
+  //   if (existingUser) {
+  //     throw new ConflictException(
+  //       'user with this email or username already exists',
+  //     );
+  //   }
+  //   const hashedPassword = await bcrypt.hash(password, 10);
+  //   const otp = crypto.randomInt(100000, 999999).toString();
+  //   const otpExpiration = new Date(Date.now() + 10 * 60 * 1000);
+  //   try {
+  //     const newUser = await this.userService.create({
+  //       firstname,
+  //       lastname,
+  //       username,
+  //       email,
+  //       phoneNumber,
+  //       country,
+  //       password: hashedPassword,
+  //       otp,
+  //       otpExpiration,
+  //       isVerified: false,
+  //       role,
+  //     });
+
+  //     console.log(newUser);
+
+  //     await this.sendOtpToEmail(email, otp);
+  //     console.log('OTP sent to email:', email);
+  //     //await this.otpService.sendOtpToPhone(phoneNumber, otp);
+  //     console.log('otp sent to phone:', phoneNumber);
+  //     return newUser;
+  //   } catch (error) {
+  //     console.log('Error creating user', error);
+  //     throw new InternalServerErrorException('failed to create user');
+  //   }
+  // }
+
+  // creating the user only after verification is done
+  async signup(SignUpDto: SignUpDto): Promise<{ message: string }> {
     const {
       firstname,
       lastname,
@@ -54,13 +114,10 @@ export class AuthService {
       country,
       password,
       confirmPassword,
-
       role,
     } = SignUpDto;
     if (password != confirmPassword) {
-      throw new BadRequestException(
-        'password and Confirm password must match each other',
-      );
+      throw new BadRequestException('password and confirm password must match');
     }
     const existingUser = await this.userService.findByEmailOrUsername(
       email,
@@ -68,38 +125,46 @@ export class AuthService {
     );
     if (existingUser) {
       throw new ConflictException(
-        'user with this email or username already exists',
+        'user with this email or username already existss',
       );
     }
-    const hashedPassword = await bcrypt.hash(password, 10);
     const otp = crypto.randomInt(100000, 999999).toString();
     const otpExpiration = new Date(Date.now() + 10 * 60 * 1000);
-    try {
-      const newUser = await this.userService.create({
-        firstname,
-        lastname,
-        username,
-        email,
-        phoneNumber,
-        country,
-        password: hashedPassword,
-        otp,
-        otpExpiration,
-        isVerified: false,
-        role,
-      });
 
-      console.log(newUser);
+    //store temporary user data in memory or another temporary storage
 
-      await this.sendOtpToEmail(email, otp);
-      console.log('OTP sent to email:', email);
-      await this.otpService.sendOtpToPhone(phoneNumber, otp);
-      console.log('otp sent to phone:', phoneNumber);
-      return newUser;
-    } catch (error) {
-      console.log('Error creating user', error);
-      throw new InternalServerErrorException('failed to create user');
-    }
+    // const tempUser = {
+    //   firstname,
+    //   lastname,
+    //   username,
+    //   email,
+    //   phoneNumber,
+    //   country,
+    //   otp,
+    //   otpExpiration,
+    //   isVerified: false,
+    //   role,
+    //   password,
+    // };
+    // Store temporary user in memory or in a session/cache
+    // await this.userService.storeTemporaryUser(email, tempUser);
+    temporaryUsers.set(email, {
+      firstname,
+      lastname,
+      username,
+      email,
+      phoneNumber,
+      country,
+      otp,
+      password,
+      otpExpiration,
+      isVerified: false,
+      role,
+    });
+    await this.sendOtpToEmail(email, otp);
+    // await this.otpService.sendOtpToPhone(phoneNumber, otp);
+
+    return { message: 'OTP sent to email and phone. Please verify' };
   }
 
   async sendOtpToEmail(email: string, otp: string) {
@@ -119,7 +184,9 @@ export class AuthService {
 
     await transporter.sendMail(mailOptions);
     console.log(`OTP sent to email: ${email}`);
+    console.log('otp is', otp);
   }
+
   // async sendOtpToPhone(phoneNumber: string, otp: string) {
   //   const twilioClient = new Twilio('TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN');
   //   await twilioClient.messages.create({
@@ -131,31 +198,74 @@ export class AuthService {
   //   console.log(`OTP sent to phone number: ${phoneNumber}`);
   // }
 
-  async verifyOtp(email: string, otp: string): Promise<boolean> {
-    const user = await this.userService.findByemail(email);
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
-    console.log('User OTP:', user.otp);
-    console.log('Entered OTP:', otp);
-    console.log('User OTP Expiration:', user.otpExpiration);
-    console.log('Current Time:', new Date());
-    const otpExpirationDate = new Date(user.otpExpiration).toISOString();
-    const currentTime = new Date().toISOString();
+  // async verifyOtp(email: string, otp: string): Promise<boolean> {
+  //   const user = await this.userService.findByemail(email);
+  //   if (!user) {
+  //     throw new UnauthorizedException('User not found');
+  //   }
+  //   console.log('User OTP:', user.otp);
+  //   console.log('Entered OTP:', otp);
+  //   console.log('User OTP Expiration:', user.otpExpiration);
+  //   console.log('Current Time:', new Date());
+  //   const otpExpirationDate = new Date(user.otpExpiration).toISOString();
+  //   const currentTime = new Date().toISOString();
 
-    if (user.otp != otp) {
+  //   if (user.otp != otp) {
+  //     throw new UnauthorizedException('Invalid OTP');
+  //   }
+
+  //   if (otpExpirationDate <= currentTime) {
+  //     throw new UnauthorizedException('OTP has expired');
+  //   }
+
+  //   user.isVerified = true;
+  //   await this.userService.update(user._id.toString(), { isVerified: true });
+  //   return true;
+  // }
+
+  // another way to verify otp to store data only after verification is done
+
+  async verifyOtp(
+    email: string,
+    otp: string,
+  ): Promise<{
+    message: string;
+  }> {
+    // const tempUser = await this.userService.getTemporaryUserByEmail(email);
+    let tempUser = temporaryUsers.get(email);
+    console.log('email', email);
+    console.log('temp user found', tempUser);
+    if (!tempUser) {
+      throw new UnauthorizedException('temporary user not found');
+    }
+    if (tempUser.otp != otp) {
       throw new UnauthorizedException('Invalid OTP');
     }
-
-    if (otpExpirationDate <= currentTime) {
-      throw new UnauthorizedException('OTP has expired');
+    if (new Date() > tempUser.otpExpiration) {
+      throw new UnauthorizedException('otp has expired');
     }
-
-    user.isVerified = true;
-    await this.userService.update(user._id.toString(), { isVerified: true });
-    return true;
+    if (!tempUser.password) {
+      throw new BadRequestException('Password is missing');
+    }
+    const hashedPassword = await bcrypt.hash(tempUser.password, 10);
+    const newUser = await this.userService.create({
+      firstname: tempUser.firstname,
+      lastname: tempUser.lastname,
+      username: tempUser.username,
+      email: tempUser.email,
+      phoneNumber: tempUser.phoneNumber,
+      country: tempUser.country,
+      password: hashedPassword,
+      role: tempUser.role,
+      isVerified: true,
+      otp: tempUser.otp,
+      otpExpiration: tempUser.otpExpiration,
+    });
+    temporaryUsers.delete(email); //remove the temporary user after creating the permanent user
+    console.log('new user details are:', newUser);
+    console.log('otp is', otp);
+    return { message: 'user successfully verified and created' };
   }
-
   async login(LoginDto: LoginDto): Promise<{ access_token: string }> {
     const { identifier, password } = LoginDto;
     const user = await this.validateUser(identifier, password);

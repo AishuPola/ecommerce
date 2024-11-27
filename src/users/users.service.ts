@@ -7,6 +7,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { ObjectId } from 'mongoose';
 @Injectable()
 export class UsersService {
+  private tempUserStore: Record<string, any> = {};
   constructor(@InjectModel('User') private userModel: Model<UserDocument>) {}
   create(CreateUserDto: CreateUserDto): Promise<User> {
     const newUser = new this.userModel(CreateUserDto);
@@ -42,6 +43,13 @@ export class UsersService {
     return updateuser;
   }
 
+  async storeTemporaryUser(email: string, tempUserData: any) {
+    this.tempUserStore[email] = tempUserData;
+  }
+
+  async getTemporaryUserByEmail(email: string) {
+    return this.tempUserStore[email];
+  }
   async update(id: string, updateData: Partial<User>): Promise<User> {
     return this.userModel.findByIdAndUpdate(id, updateData, { new: true });
   }
