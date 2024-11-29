@@ -5,6 +5,7 @@ import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ObjectId } from 'mongoose';
+import { UserProfileDto } from './dto/user-profile.dto';
 @Injectable()
 export class UsersService {
   private tempUserStore: Record<string, any> = {};
@@ -52,5 +53,35 @@ export class UsersService {
   }
   async update(id: string, updateData: Partial<User>): Promise<User> {
     return this.userModel.findByIdAndUpdate(id, updateData, { new: true });
+  }
+
+  //get user profile
+  async getUserProfile(id: string): Promise<UserProfileDto> {
+    const user = await this.userModel.findById(id).exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const { firstname, lastname, _id, ...rest } = user.toObject();
+    const fullName = `${firstname} ${lastname}`;
+    return {
+      id: _id.toString(),
+      ...rest,
+      fullName,
+    };
+  }
+  //update the user profile
+  async updateUserProfile(
+    userId: string,
+    updateData: Partial<User>,
+  ): Promise<User> {
+    const user = await this.userModel
+      .findByIdAndUpdate(userId, updateData, {
+        new: true,
+      })
+      .exec();
+    if (!user) {
+      throw new NotFoundException('user not found');
+    }
+    return user;
   }
 }

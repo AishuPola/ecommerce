@@ -10,6 +10,8 @@ import { CartModule } from './cart/cart.module';
 import { OrdersModule } from './orders/orders.module';
 import { OtpService } from './otp/otp.service';
 import { OtpModule } from './otp/otp.module';
+import { S3Service } from './s3/s3.service';
+import { S3Module } from './s3/s3.module';
 
 @Module({
   imports: [
@@ -31,8 +33,9 @@ import { OtpModule } from './otp/otp.module';
     CartModule,
     OrdersModule,
     OtpModule,
+    S3Module,
   ],
   controllers: [AppController],
-  providers: [AppService, OtpService],
+  providers: [AppService, OtpService, S3Service],
 })
 export class AppModule {}

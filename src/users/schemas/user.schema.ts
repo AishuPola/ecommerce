@@ -17,6 +17,8 @@ export class User {
   @Prop({ required: true })
   lastname: string;
 
+  @Prop()
+  fullName?: string;
   @Prop({ required: true, unique: true })
   username: string;
 
@@ -29,14 +31,20 @@ export class User {
   @Prop({ required: true })
   country: string;
 
+  @Prop()
+  address: string;
+
+  @Prop()
+  profilePicture: string;
+
   @Prop({ required: true })
   password: string;
 
-  @Prop()
-  otp: string;
+  // @Prop()
+  // otp: string;
 
-  @Prop()
-  otpExpiration: string;
+  // @Prop()
+  // otpExpiration: string;
 
   @Prop({ default: false })
   isVerified: boolean;
