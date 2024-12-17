@@ -6,6 +6,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { ObjectId } from 'mongoose';
 import { UserProfileDto } from './dto/user-profile.dto';
+import { Types } from 'mongoose';
 @Injectable()
 export class UsersService {
   private tempUserStore: Record<string, any> = {};
@@ -34,7 +35,7 @@ export class UsersService {
   // async findByUsername(username: string): Promise<User> {
   //   return this.userModel.findOne({ username }).exec();
   // }
-  async updateUser(id: string, UpdateUserDto: UpdateUserDto) {
+  async updateUser(id: string | Types.ObjectId, UpdateUserDto: UpdateUserDto) {
     const updateuser = await this.userModel
       .findOneAndUpdate({ _id: id }, UpdateUserDto, { new: true })
       .exec();
@@ -83,5 +84,11 @@ export class UsersService {
       throw new NotFoundException('user not found');
     }
     return user;
+  }
+  //for forgot password:
+  //find user by reset token
+
+  async findOneByResetToken(token: string): Promise<User | null> {
+    return this.userModel.findOne({ resetPasswordToken: token }).exec();
   }
 }

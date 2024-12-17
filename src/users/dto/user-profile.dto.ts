@@ -1,4 +1,4 @@
-import { IsEmail, IsString } from 'class-validator';
+import { IsEmail, isString, IsString } from 'class-validator';
 
 export class UserProfileDto {
   id: string;

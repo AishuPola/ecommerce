@@ -54,6 +54,14 @@ export class User {
 
   // @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   // user?: User;
+  @Prop({ default: null })
+  resetPasswordToken?: string;
+
+  @Prop({ default: null })
+  resetPasswordExpires?: Date;
+
+  // Add the `_id` field explicitly
+  readonly _id: Types.ObjectId;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

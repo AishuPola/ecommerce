@@ -2,6 +2,7 @@ import {
   IsEmail,
   isNotEmpty,
   IsNotEmpty,
+  IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
@@ -29,8 +30,9 @@ export class CreateUserDto {
   @MinLength(6)
   password: string;
 
+  @IsOptional()
   @IsNotEmpty()
-  country: string;
+  country?: string;
 
   @IsNotEmpty()
   otp: string;
@@ -40,5 +42,6 @@ export class CreateUserDto {
 
   isVerified: boolean;
 
+  @IsOptional()
   role: UserRole;
 }

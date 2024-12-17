@@ -8,7 +8,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import { SignUpDto } from './dto/signup.dto';
-import { User } from 'src/users/schemas/user.schema';
+import { User, UserRole } from 'src/users/schemas/user.schema';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import * as crypto from 'crypto';
@@ -111,10 +111,10 @@ export class AuthService {
       username,
       email,
       phoneNumber,
-      country,
+      country = '',
       password,
       confirmPassword,
-      role,
+      role = UserRole.USER,
     } = SignUpDto;
     if (password != confirmPassword) {
       throw new BadRequestException('password and confirm password must match');
@@ -266,7 +266,9 @@ export class AuthService {
     console.log('otp is', otp);
     return { message: 'user successfully verified and created' };
   }
-  async login(LoginDto: LoginDto): Promise<{ access_token: string }> {
+  async login(
+    LoginDto: LoginDto,
+  ): Promise<{ access_token: string; sub: string }> {
     const { identifier, password } = LoginDto;
     const user = await this.validateUser(identifier, password);
 
@@ -284,6 +286,42 @@ export class AuthService {
 
     return {
       access_token: this.jwtService.sign(payload),
+      sub: user._doc._id.toString(),
     };
+  }
+
+  async hashPassword(password: string): Promise<string> {
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(password, salt);
+  }
+  //send password Reset Email
+  async sendPasswordResetEmail(email: string, link: string): Promise<void> {
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail',
+      auth: {
+        user: process.env.user_mail,
+        pass: process.env.user_pass,
+      },
+    });
+    const subject = 'Password Reset Request';
+    const body = `
+      <p>You requested a password reset. Click the link below to reset your password:</p>
+      <p><a href="${link}" target="_blank">Reset Password</a></p>
+      <p>If you did not request this, please ignore this email.</p>
+     
+    `;
+    const mailOptions: nodemailer.sendMailOptions = {
+      from: ' "Support Team" <paishwarya2003@gmail.com>',
+      to: email,
+      subject: subject,
+      html: body,
+    };
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log(`Password reset email sent to ${email}`);
+    } catch (error) {
+      console.error(`error sending password reset email to ${email}:`, error);
+      throw new Error('Failed to send password reset email');
+    }
   }
 }
